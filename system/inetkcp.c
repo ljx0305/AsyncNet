@@ -419,18 +419,17 @@ static void ikcp_parse_ack(ikcpcb *kcp, IUINT32 sn)
 			kcp->nsnd_buf--;
 			break;
 		}
+		if (itimediff(sn, seg->sn) < 0) {
+			break;
+		}
 		else {
 			seg->fastack++;
-			if (seg->fastack >= IKCP_ACK_FAST) {
-		//		kcp->fastack++;
-			}
 		}
 	}
 }
 
 static void ikcp_parse_una(ikcpcb *kcp, IUINT32 una)
 {
-#if 1
 	struct IQUEUEHEAD *p, *next;
 	for (p = kcp->snd_buf.next; p != &kcp->snd_buf; p = next) {
 		IKCPSEG *seg = iqueue_entry(p, IKCPSEG, node);
@@ -443,7 +442,6 @@ static void ikcp_parse_una(ikcpcb *kcp, IUINT32 una)
 			break;
 		}
 	}
-#endif
 }
 
 
@@ -726,7 +724,7 @@ void ikcp_flush(ikcpcb *kcp)
 	count = kcp->ackcount;
 	for (i = 0; i < count; i++) {
 		size = (int)(ptr - buffer);
-		if (size + IKCP_OVERHEAD > (int)kcp->mtu) {
+		if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu) {
 			ikcp_output(kcp, buffer, size);
 			ptr = buffer;
 		}
@@ -762,7 +760,7 @@ void ikcp_flush(ikcpcb *kcp)
 	if (kcp->probe & IKCP_ASK_SEND) {
 		seg.cmd = IKCP_CMD_WASK;
 		size = (int)(ptr - buffer);
-		if (size + IKCP_OVERHEAD > (int)kcp->mtu) {
+		if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu) {
 			ikcp_output(kcp, buffer, size);
 			ptr = buffer;
 		}
@@ -773,7 +771,7 @@ void ikcp_flush(ikcpcb *kcp)
 	if (kcp->probe & IKCP_ASK_TELL) {
 		seg.cmd = IKCP_CMD_WINS;
 		size = (int)(ptr - buffer);
-		if (size + IKCP_OVERHEAD > (int)kcp->mtu) {
+		if (size + (int)IKCP_OVERHEAD > (int)kcp->mtu) {
 			ikcp_output(kcp, buffer, size);
 			ptr = buffer;
 		}
